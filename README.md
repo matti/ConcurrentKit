@@ -6,7 +6,7 @@ This library eliminates the rightward drift problem created when chaining multip
 
 It is important to note, while this borrows from promises their syntax, it is not designed as a A+ compliant promise library.
 I was inspired to create this library after seeing [mxcl](https://github.com/mxcl) promiseKit library.
-If you want a compliant promise library, check it out here: [](https://github.com/mxcl/PromiseKit).
+If you want a compliant promise library, check it out [here](https://github.com/mxcl/PromiseKit).
 
 The best way to explain what the library does is through examples.
 ## examples ##
@@ -50,7 +50,7 @@ The best way to explain what the library does is through examples.
 
 This greatly simplifies switching between threads and eliminates rightward drift. This chain can go on as long as needed.
 
-## more details to come... 
+## more details to come...
 
 ## Requirements ##
 
