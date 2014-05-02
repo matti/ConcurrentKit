@@ -46,6 +46,12 @@ typedef void (^DCAsyncTask)(DCAsyncTaskSuccess success,DCAsyncTaskFailure failur
 -(void(^)(id))catch;
 
 /**
+ Factory method to create async task with the begin block.
+ @return return a newly init DCTask.
+ */
++(DCTask*)new:(void (^)(void))begin;
+
+/**
  This can be used to make inheritly async task (e.g. NSURLConnection) and work properly with a DCTask chain.
  @return return a newly init DCTask.
  */

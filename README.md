@@ -1,10 +1,56 @@
 ConcurrentKit
 =============
 
-Concurrency made easy with promise/future like syntax for OS X and iOS. 
+Concurrency made easy with promise/future like syntax for OS X and iOS. This library greatly simplifies the work need to make async task in objc.
+This library eliminates the rightward drift problem created when chaining multiple block based async task together.
 
-## More to come.... ##
+It is important to note, while this borrows from promises their syntax, it is not designed as a A+ compliant promise library.
+I was inspired to create this library after seeing [mxcl](https://github.com/mxcl) promiseKit library.
+If you want a compliant promise library, check it out here: [](https://github.com/mxcl/PromiseKit).
 
+The best way to explain what the library does is through examples.
+## examples ##
+
+```objc
+    DCTask *task = [DCTask new];
+    task.begin(^{
+        NSLog(@"let's begin a background thread");
+        sleep(10); //a example of a long running task
+        return @10; //something we got from the long running task
+    }).thenMain(^(NSNumber *num){
+        NSLog(@"first: %@",num); //this would be a 10
+        self.navigationItem.rightBarButtonItem.enabled = NO;
+        return nil; //have to return something
+    }).then(^{
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://www.vluxe.io"]];
+        id q = [NSOperationQueue currentQueue] ?: [NSOperationQueue mainQueue];
+        return [DCTask newAsyncTask:^(DCAsyncTaskSuccess success, DCAsyncTaskFailure failure) {
+            [NSURLConnection sendAsynchronousRequest:request queue:q completionHandler:^(id rsp, id data, NSError *error) {
+                if(error) {
+                    failure(error);
+                } else {
+                    success(data);
+                }
+            }];
+        }];
+        //we would abstract this out to something like this:
+        //return [WebTask GET:@"http://www.vluxe.io"];
+    }).thenMain(^(id object){
+        NSString *str = [[NSString alloc] initWithData:object encoding:NSUTF8StringEncoding];
+        NSLog(@"web request finished: %@",str);
+        //do something on the main thread.
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+        return nil;
+    }).catch(^(NSError *error){
+        NSLog(@"got an error: %@",error);
+        self.navigationItem.rightBarButtonItem.enabled = NO;
+    });
+    [task start];
+```
+
+This greatly simplifies switching between threads and eliminates rightward drift. This chain can go on as long as needed.
+
+## more details to come... 
 
 ## Requirements ##
 
