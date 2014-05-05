@@ -22,19 +22,7 @@ The best way to explain what the library does is through examples.
         self.navigationItem.rightBarButtonItem.enabled = NO;
         return nil; //have to return something
     }).then(^{
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://www.vluxe.io"]];
-        id q = [NSOperationQueue currentQueue] ?: [NSOperationQueue mainQueue];
-        return [DCTask newAsyncTask:^(DCAsyncTaskSuccess success, DCAsyncTaskFailure failure) {
-            [NSURLConnection sendAsynchronousRequest:request queue:q completionHandler:^(id rsp, id data, NSError *error) {
-                if(error) {
-                    failure(error);
-                } else {
-                    success(data);
-                }
-            }];
-        }];
-        //we would abstract this out to something like this:
-        //return [WebTask GET:@"http://www.vluxe.io"];
+        return [DCHTTPTask GET:@"http://www.vluxe.io"];
     }).thenMain(^(id object){
         NSString *str = [[NSString alloc] initWithData:object encoding:NSUTF8StringEncoding];
         NSLog(@"web request finished: %@",str);

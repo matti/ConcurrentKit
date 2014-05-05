@@ -31,6 +31,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(void)runTask:(DCTask*)task param:(id)param
 {
+    if(!task)
+        return;
+    [task willStart];
     if(task.asyncTask)
     {
         task.asyncTask(^(id val){
@@ -58,6 +61,14 @@
             });
         }
     }
+    else {
+        [self finishedTask:task result:param];
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+-(void)willStart
+{
+    //used for subclasses
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(BOOL)processError:(DCTask*)currentTask val:(id)value
@@ -103,7 +114,7 @@
     return ^(DCTask*(^begin)(id)){
         DCTask *task = [DCTask new];
         self.next = task;
-        self.work = begin;
+        task.work = begin;
         return task;
     };
 }
@@ -113,7 +124,7 @@
     return ^(DCTask*(^work)(id)){
         DCTask *task = [DCTask new];
         self.next = task;
-        self.work = work;
+        task.work = work;
         return task;
     };
 }
@@ -122,9 +133,9 @@
 {
     return ^(DCTask*(^work)(id)){
         DCTask *task = [DCTask new];
-        self.isMain = YES;
         self.next = task;
-        self.work = work;
+        task.isMain = YES;
+        task.work = work;
         return task;
     };
 }
