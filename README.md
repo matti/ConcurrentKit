@@ -4,12 +4,12 @@ ConcurrentKit
 Concurrency made easy with promise/future like syntax for OS X and iOS. This library greatly simplifies the work need to make async task in objc.
 This library eliminates the rightward drift problem created when chaining multiple block based async task together.
 
-It is important to note, while this borrows from promises their syntax, it is not designed as a A+ compliant promise library.
+It is important to note, while this borrows from promises their syntax, it is not designed as an A+ compliant promise library.
 I was inspired to create this library after seeing [mxcl](https://github.com/mxcl) promiseKit library.
 If you want a compliant promise library, check it out [here](https://github.com/mxcl/PromiseKit).
 
 The best way to explain what the library does is through examples.
-## examples ##
+## Examples ##
 
 ```objc
     DCTask *task = [DCTask new];
@@ -23,8 +23,8 @@ The best way to explain what the library does is through examples.
         return nil; //have to return something
     }).then(^{
         return [DCHTTPTask GET:@"http://www.vluxe.io"];
-    }).thenMain(^(id object){
-        NSString *str = [[NSString alloc] initWithData:object encoding:NSUTF8StringEncoding];
+    }).thenMain(^(DCHTTPResponse *response){
+        NSString *str = [[NSString alloc] initWithData:response.responseObject encoding:NSUTF8StringEncoding];
         NSLog(@"web request finished: %@",str);
         //do something on the main thread.
         self.navigationItem.rightBarButtonItem.enabled = YES;
@@ -42,7 +42,7 @@ This greatly simplifies switching between threads and eliminates rightward drift
 
 ## Requirements ##
 
-ConcurrentKit requires at least iOS 6 or OS X 10.8.
+ConcurrentKit requires at least iOS 5 or OS X 10.8.
 
 
 ## License ##
@@ -54,3 +54,4 @@ ConcurrentKit is license under the Apache License.
 ### Dalton Cherry ###
 * https://github.com/daltoniam
 * http://twitter.com/daltoniam
+* http://daltoniam.com
