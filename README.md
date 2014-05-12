@@ -2,9 +2,11 @@ ConcurrentKit
 =============
 
 Concurrency made easy with promise/future like syntax for OS X and iOS. This library greatly simplifies the work need to make async task in objc.
-This library eliminates the rightward drift problem created when chaining multiple block based async task together.
+This library eliminates the rightward drift problem created when chaining multiple block based async task together. This library was mainly a learning experience to better understand the chainable/promise syntax of promiseKit. That being said it use portions of promiseKit code. Check that out here:
 
-It is important to note, while this borrows from promises their syntax, it is not designed as an A+ compliant promise library.
+[PromiseKit](https://github.com/mxcl/PromiseKit)
+
+It is important to note, while this borrows from promises and their syntax, it is not designed as an A+ compliant promise library.
 I was inspired to create this library after seeing [mxcl](https://github.com/mxcl) promiseKit library.
 If you want a compliant promise library, check it out [here](https://github.com/mxcl/PromiseKit).
 
