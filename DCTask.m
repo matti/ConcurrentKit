@@ -8,6 +8,66 @@
 
 #import "DCTask.h"
 
+/*
+ This is a literal copy of the block structure so we can dig out the method signature.
+ I borrowed this structure from promiseKit (see the README).
+ This is pretty slick, but has some possible issues with...
+ If the internal structure of a block changes (unlikely, but possible) this would no longer work.
+ Then again if that happened, we would have to change the code either way, so I guess it is not a big deal,
+ but I feel it is worth writing down.
+ */
+struct DCBlockLiteral {
+    void *isa; // initialized to &_NSConcreteStackBlock or &_NSConcreteGlobalBlock
+    int flags;
+    int reserved;
+    void (*invoke)(void *, ...);
+    struct block_descriptor {
+        unsigned long int reserved;	// NULL
+    	unsigned long int size;     // sizeof(struct Block_literal_1)
+        // optional helper functions
+    	void (*copy_helper)(void *dst, void *src);     // IFF (1<<25)
+    	void (*dispose_helper)(void *src);             // IFF (1<<25)
+        // required ABI.2010.3.16
+        const char *signature;                         // IFF (1<<30)
+    } *descriptor;
+    // imported variables
+};
+
+//The possible flags of a block structure (or the ones we are interested in).
+typedef NS_OPTIONS(NSUInteger, DCBlockDescriptionFlags) {
+    PMKBlockDescriptionFlagsHasCopyDispose = (1 << 25),
+    PMKBlockDescriptionFlagsHasCtor = (1 << 26), // helpers have C++ code
+    PMKBlockDescriptionFlagsIsGlobal = (1 << 28),
+    PMKBlockDescriptionFlagsHasStret = (1 << 29), // IFF BLOCK_HAS_SIGNATURE
+    PMKBlockDescriptionFlagsHasSignature = (1 << 30)
+};
+
+//this method pulls the method signature from the block,
+//which we can use to infer the return type, or if there is something to return.
+static NSMethodSignature *NSMethodSignatureForBlock(id block) {
+    if (!block)
+        return nil;
+    
+    struct DCBlockLiteral *blockRef = (__bridge struct DCBlockLiteral*)block;
+    DCBlockDescriptionFlags flags = (DCBlockDescriptionFlags)blockRef->flags;
+    
+    if (flags & PMKBlockDescriptionFlagsHasSignature) {
+        void *signatureLocation = blockRef->descriptor;
+        signatureLocation += sizeof(unsigned long int);
+        signatureLocation += sizeof(unsigned long int);
+        
+        if (flags & PMKBlockDescriptionFlagsHasCopyDispose) {
+            signatureLocation += sizeof(void(*)(void *dst, void *src));
+            signatureLocation += sizeof(void (*)(void *src));
+        }
+        
+        const char *signature = (*(const char **)signatureLocation);
+        return [NSMethodSignature signatureWithObjCTypes:signature];
+    }
+    return nil;
+}
+
+
 @interface DCTask ()
 
 //This basically a singly linked list
@@ -48,13 +108,13 @@
     {
         if(task.isMain)
         {
-            id val = task.work(param);
+            id val = [self preformBlock:task.work param:param];
             [self finishedTask:task result:val];
         }
         else
         {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                id val = task.work(param);
+                id val = [self preformBlock:task.work param:param];
                 dispatch_async(dispatch_get_main_queue(),^{
                     [self finishedTask:task result:val];
                 });
@@ -64,6 +124,25 @@
     else {
         [self finishedTask:task result:param];
     }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+-(id)preformBlock:(DCTask*(^)(id))block param:(id)param
+{
+    NSMethodSignature *sig = NSMethodSignatureForBlock(block);
+    if(sig)
+    {
+        //const NSUInteger nargs = sig.numberOfArguments;
+        const char rtype = sig.methodReturnType[0];
+        //NSLog(@"rtype: %c",rtype);
+        id response = nil;
+        if(rtype == 'v') {
+            ((void(^)(id))block)(param);
+        } else {
+            response = block(param);
+        }
+        return response;
+    }
+    return block(param);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(void)willStart
@@ -165,3 +244,4 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @end
+
